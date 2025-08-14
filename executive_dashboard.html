@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WELL Health Risk-Insight Analytics Dashboard</title>
+    <style>
+        /* WELL Health Brand Palette */
+        :root {
+            --well-primary: #0B3D5F;
+            --well-secondary: #0084DE;
+            --well-light-blue: #C8E7FC;
+            --well-lighter-blue: #E8F6FF;
+            --well-lightest: #FBFDFF;
+            --well-white: #FFFFFF;
+            --well-text: #2C3E50;
+            --well-success: #7FB069;
+            --well-warning: #F4A261;
+            --well-danger: #E76F51;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            line-height: 1.6;
+            color: var(--well-text);
+            background: linear-gradient(135deg, var(--well-lightest) 0%, var(--well-lighter-blue) 100%);
+            min-height: 100vh;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--well-primary) 0%, var(--well-secondary) 100%);
+            color: var(--well-white);
+            padding: 2rem 0;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(11, 61, 95, 0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .executive-summary {
+            background: var(--well-white);
+            margin: 2rem 0;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(11, 61, 95, 0.1);
+            border-left: 6px solid var(--well-secondary);
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin: 2rem 0;
+        }
+
+        .kpi-card {
+            background: var(--well-white);
+            padding: 1.5rem;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 4px 20px rgba(11, 61, 95, 0.1);
+            border-top: 4px solid var(--well-secondary);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 32px rgba(11, 61, 95, 0.2);
+        }
+
+        .kpi-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--well-primary);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-label {
+            font-size: 1rem;
+            color: var(--well-text);
+            font-weight: 500;
+        }
+
+        .section {
+            background: var(--well-white);
+            margin: 2rem 0;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(11, 61, 95, 0.1);
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--well-light-blue) 0%, var(--well-lighter-blue) 100%);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--well-light-blue);
+        }
+
+        .section-header h2 {
+            color: var(--well-primary);
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .section-header p {
+            color: var(--well-text);
+            opacity: 0.8;
+            font-size: 1rem;
+        }
+
+        .section-content {
+            padding: 2rem;
+        }
+
+        .viz-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(600px, 1fr));
+            gap: 2rem;
+            margin: 2rem 0;
+            align-items: start;
+            width: 100%;
+            max-width: 100%;
+            overflow: hidden;
+        }
+
+        .viz-card {
+            background: var(--well-white);
+            border-radius: 12px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 20px rgba(11, 61, 95, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            max-width: 100%;
+            box-sizing: border-box;
+            position: relative;
+            break-inside: avoid;
+        }
+
+        .viz-card iframe {
+            width: 100% !important;
+            height: 500px;
+            border: none;
+            margin-top: 1rem;
+            overflow: hidden !important;
+            transform-origin: 0 0;
+            transform: scale(1);
+            max-width: 100%;
+        }
+
+        .viz-title {
+            font-size: 1.2rem;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            text-align: center;
+        }
+
+        /* Layout utility classes for controlling card width */
+        .viz-card.full {
+            width: 100%;
+            max-width: 1200px;
+            grid-column: 1 / -1; /* span full grid width */
+            justify-self: center; /* center within grid */
+        }
+
+        .viz-card.half {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 1200px) {
+            .container { padding: 0 1.25rem; }
+            .viz-grid {
+                grid-template-columns: 1fr;
+                width: 100%;
+            }
+            
+            .viz-card {
+                max-width: 100%;
+                margin: 0 auto;
+                padding: 1rem;
+            }
+            
+            .viz-card iframe {
+                height: 500px;
+                transform: scale(1);
+                width: 100% !important;
+            }
+        }
+
+        @media (max-width: 992px) {
+            .viz-grid { grid-template-columns: repeat(auto-fit, minmax(380px, 1fr)); }
+            .viz-card.half { max-width: 100%; }
+            .viz-card.full { max-width: 100%; }
+            .viz-card iframe { height: 480px; }
+            .header h1 { font-size: 2.2rem; }
+        }
+
+        @media (max-width: 768px) {
+            .kpi-grid { grid-template-columns: 1fr 1fr; }
+            .viz-grid { grid-template-columns: 1fr; gap: 2rem; }
+            .viz-card iframe { height: 420px; }
+            .section-header h2 { font-size: 1.5rem; }
+            .section-header p { font-size: 0.95rem; }
+        }
+
+        @media (max-width: 480px) {
+            .container { padding: 0 1rem; }
+            .kpi-grid { grid-template-columns: 1fr; }
+            .kpi-number { font-size: 1.9rem; }
+            .viz-card iframe { height: 360px; }
+            .viz-title { font-size: 1rem; }
+        }
+
+        .data-summary {
+            background: linear-gradient(135deg, var(--well-lighter-blue) 0%, var(--well-lightest) 100%);
+            border-left: 4px solid var(--well-secondary);
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .data-summary h3 {
+            color: var(--well-primary);
+            font-size: 1.2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Tab Navigation Styles */
+        .tab-navigation {
+            background: var(--well-white);
+            padding: 1rem;
+            margin: 2rem 0;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+            border-left: 4px solid var(--well-secondary);
+        }
+
+        .tab-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .tab-button {
+            background: var(--well-light-blue);
+            color: var(--well-primary);
+            padding: 0.7rem 1.2rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .tab-button:hover {
+            background: var(--well-secondary);
+            color: var(--well-white);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 132, 222, 0.3);
+        }
+
+        .tab-button.active {
+            background: var(--well-primary);
+            color: var(--well-white);
+            border-color: var(--well-secondary);
+        }
+
+        .tab-content {
+            display: none;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.5s ease;
+        }
+
+        .tab-content.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .tab-content.show {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .data-summary p {
+            color: var(--well-text);
+            line-height: 1.6;
+        }
+
+        .footer {
+            background: var(--well-primary);
+            color: var(--well-white);
+            text-align: center;
+            padding: 2rem;
+            margin-top: 3rem;
+        }
+
+        @media (max-width: 1200px) {
+            .viz-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .kpi-grid {
+                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            }
+            
+            .viz-card iframe {
+                height: 500px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="container">
+            <h1>WELL Health Risk-Insight Analytics</h1>
+            <p>Comprehensive Analysis of 475 Patients Across Three Partner Clinics</p>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- Executive Summary -->
+        <section class="executive-summary">
+            <h2 style="color: var(--well-primary); margin-bottom: 1rem; font-size: 2rem;">Data Analysis Summary</h2>
+            <p style="font-size: 1.1rem; line-height: 1.8; margin-bottom: 1.5rem;">
+                Analysis of <strong>475 patients</strong> across three partner clinics (False Creek, INLIV, ExecHealth) with biomarker data, biological age assessments, and risk model predictions for diabetes, dementia, and cardiovascular conditions.
+            </p>
+            
+            <!-- Key Performance Indicators -->
+            <div class="kpi-grid">
+                <div class="kpi-card">
+                    <div class="kpi-number" style="color: var(--well-primary);">475</div>
+                    <div class="kpi-label">Total Patients Analyzed</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-number" style="color: var(--well-secondary);">152 (32%)</div>
+                    <div class="kpi-label">Patients Flagged for Further Review</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-number" style="color: var(--well-primary);">3</div>
+                    <div class="kpi-label">Risk Models Applied</div>
+                </div>
+                <div class="kpi-card">
+                    <div class="kpi-number" style="color: var(--well-secondary);">34</div>
+                    <div class="kpi-label">Interactive Visualizations</div>
+                </div>
+            </div>
+
+            <div class="data-summary">
+                <h3>Dataset Overview</h3>
+                <p>
+                    The dataset includes patients from False Creek (406 patients), INLIV (35 patients), and ExecHealth (34 patients). 
+                    Analysis flags the top 25% of patients with the most values outside standard ranges as 'Further Review' and uses clinical risk thresholds 
+                    (Low <33%, Medium 33-66%, High 66%+) for risk model segmentation.
+                </p>
+            </div>
+        </section>
+
+        <!-- Tab Navigation -->
+        <section class="tab-navigation">
+            <h3 style="color: var(--well-primary); margin-bottom: 1rem; font-size: 1.3rem;">Analysis Sections</h3>
+            <div class="tab-buttons">
+                <button class="tab-button active" onclick="showTab('part1')">📊 Demographics & Data Quality</button>
+                <button class="tab-button" onclick="showTab('part2')">🧬 Biomarker Analysis</button>
+                <button class="tab-button" onclick="showTab('part3')">⚠️ Risk Segmentation</button>
+                <button class="tab-button" onclick="showTab('part4')">🧠 Biological Age Insights</button>
+                <button class="tab-button" onclick="showTab('part5')">🏥 Further Review Analysis</button>
+            </div>
+        </section>
+
+        <!-- Part 1: Demographics and Data Quality -->
+        <div class="tab-content active" id="part1">
+            <div class="section-header">
+                <h2>Part 1: Demographics and Data Quality</h2>
+                <p>Patient population characteristics and data completeness assessment</p>
+            </div>
+            <div class="section-content">
+                <!-- Cohort Composition - Full Width -->
+                <div class="viz-grid">
+                    <div class="viz-card" style="width: 100%;">
+                        <div class="viz-title">Cohort Composition</div>
+                        <iframe src="plots/02_cohort_composition.html" style="width: 100%; min-height: 600px;"></iframe>
+                    </div>
+                </div>
+                
+                <!-- Top 20 Missing Features - Full Width -->
+                <div class="viz-grid" style="margin-top: 2rem; display: flex; justify-content: center;">
+                    <div class="viz-card" style="width: 100%;">
+                        <div class="viz-title">Top 20 Missing Features</div>
+                        <iframe src="plots/01_top_20_missing_features.html" style="width: 100%; min-height: 700px;"></iframe>
+                    </div>
+                </div>
+                
+                <!-- Data Completeness Heatmap - Full Width -->
+                <div class="viz-grid" style="margin-top: 2rem;">
+                    <div class="viz-card" style="width: 100%;">
+                        <div class="viz-title">Data Completeness Heatmap</div>
+                        <iframe src="plots/03_data_completeness_heatmap.html" style="width: 100%; min-height: 600px;"></iframe>
+                    </div>
+                </div>
+                <div class="data-summary">
+                    <h3>Demographics Summary</h3>
+                    <p>
+                        The cohort includes 475 patients with gender distribution of 316 males (66.5%) and 159 females (33.5%). 
+                        Age groups range from under 30 to over 70, with the largest groups being 40-49 (150 patients) and 50-59 (168 patients). 
+                        False Creek contributes 85.5% of the patient population.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 2: Biomarker Analysis -->
+        <div class="tab-content" id="part2">
+            <div class="section-header">
+                <h2>Part 2: Biomarker Analysis</h2>
+                <p>Biological age assessment and biomarker patterns</p>
+            </div>
+            <div class="section-content">
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Biomarker Correlation Heatmap</div>
+                        <iframe src="plots/04_biomarker_correlation_heatmap.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Top 5 Biomarkers - Values Outside Standard Range</div>
+                        <iframe src="plots/05_top_biomarkers_values_outside_standard_range.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Cholesterol Levels by Demographics</div>
+                        <iframe src="plots/07_cholesterol_by_demographics.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Values Outside Standard Range Count Distribution</div>
+                        <iframe src="plots/06_values_outside_ranges_histogram.html"></iframe>
+                    </div>
+                </div>
+                <div class="data-summary">
+                    <h3>Biomarker Findings</h3>
+                    <p>
+                        The biomarkers most frequently outside standard ranges include cholesterol-related markers and metabolic indicators. 
+                        Distribution of values outside standard ranges counts from 0 to 10+ per patient. Using a 75th percentile threshold (≥5 values outside ranges), 32.0% of patients have multiple values outside standard ranges that may warrant further review.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 3: Risk Segmentation -->
+        <div class="tab-content" id="part3">
+            <div class="section-header">
+                <h2>Part 3: Risk Segmentation</h2>
+                <p>Risk model analysis for diabetes, dementia, and cardiovascular conditions</p>
+            </div>
+            <div class="section-content">
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Diabetes Risk Distribution</div>
+                        <iframe src="plots/09_risk_pie_diabetes.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Diabetes Risk by Age Group</div>
+                        <iframe src="plots/08_risk_by_age_diabetes.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Diabetes Risk by Gender</div>
+                        <iframe src="plots/10_risk_by_gender_diabetes.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Age vs Diabetes Risk Score</div>
+                        <iframe src="plots/11_age_vs_risk_diabetes.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Dementia Risk Distribution</div>
+                        <iframe src="plots/15_risk_pie_dementia.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Dementia Risk by Age Group</div>
+                        <iframe src="plots/14_risk_by_age_dementia.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Dementia Risk by Gender</div>
+                        <iframe src="plots/13_risk_by_gender_dementia.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Age vs Dementia Risk Score</div>
+                        <iframe src="plots/12_age_vs_risk_dementia.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Cardiovascular Risk Distribution</div>
+                        <iframe src="plots/17_risk_pie_cardiovascular.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Cardiovascular Risk by Age Group</div>
+                        <iframe src="plots/16_risk_by_age_cardiovascular.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Cardiovascular Risk by Gender</div>
+                        <iframe src="plots/19_risk_by_gender_cardiovascular.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Age vs Cardiovascular Risk Score</div>
+                        <iframe src="plots/18_age_vs_risk_cardiovascular.html"></iframe>
+                    </div>
+                </div>
+                <div class="data-summary">
+                    <h3>Risk Model Results</h3>
+                    <p>
+                        Risk segmentation uses clinical thresholds: Low (<33%), Medium (33-66%), High (66%+). 
+                        All three risk models show age-related increases in risk scores. Gender differences vary by condition, 
+                        with distinct patterns observed across diabetes, dementia, and cardiovascular risk assessments.
+                    </p>
+                </div>
+                
+                <!-- Percentile-Based Risk Analysis Subsection -->
+                <div class="subsection-header" style="margin-top: 3rem; padding: 1.5rem; background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%); border-left: 4px solid var(--well-primary); border-radius: 8px;">
+                    <h3 style="color: var(--well-primary); margin-bottom: 1rem;">📊 Enhanced Risk Visualization (Percentile-Based)</h3>
+                    <div class="explanation-box" style="background: white; padding: 1.5rem; border-radius: 6px; margin-bottom: 1.5rem; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h4 style="color: var(--well-secondary); margin-bottom: 1rem;">Why Percentile-Based Visualization?</h4>
+                        <p style="margin-bottom: 1rem; line-height: 1.6;">
+                            <strong>Clinical Challenge:</strong> For dementia and cardiovascular risk, most patients fall into the "Low Risk" category using clinical thresholds, 
+                            making it difficult to visualize meaningful differences between patients in standard charts.
+                        </p>
+                        <p style="margin-bottom: 1rem; line-height: 1.6;">
+                            <strong>Solution:</strong> The following visualizations use <em>percentile-based categories</em> to show relative risk distribution within our patient population:
+                        </p>
+                        <ul style="margin-left: 1.5rem; line-height: 1.8;">
+                            <li><strong>Lowest 25%:</strong> Patients with the lowest risk scores in our population</li>
+                            <li><strong>Lower-Middle 25%:</strong> Second quartile of risk scores</li>
+                            <li><strong>Upper-Middle 25%:</strong> Third quartile of risk scores</li>
+                            <li><strong>Highest 25%:</strong> Patients with the highest risk scores in our population</li>
+                        </ul>
+                        <div style="background: #fff3cd; padding: 1rem; border-radius: 4px; border-left: 4px solid #ffc107; margin-top: 1rem;">
+                            <strong>⚠️ Important Note:</strong> These percentile-based visualizations are for <em>enhanced visual differentiation only</em> and do not replace clinical risk thresholds. 
+                            The underlying clinical data and risk scores remain unchanged.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Percentile-Based Visualizations -->
+                <h4 style="color: var(--well-primary); margin: 2rem 0 1rem 0;">Dementia Risk (Percentile-Based)</h4>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Dementia Risk by Age Group (Percentile-Based)</div>
+                        <iframe src="plots/29_percentile_risk_by_age_dementia.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Biological Age Gap vs Dementia Risk (Percentile-Based)</div>
+                        <iframe src="plots/30_bioage_gap_vs_percentile_dementia.html"></iframe>
+                    </div>
+                </div>
+                
+                <h4 style="color: var(--well-primary); margin: 2rem 0 1rem 0;">Cardiovascular Risk (Percentile-Based)</h4>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Cardiovascular Risk by Age Group (Percentile-Based)</div>
+                        <iframe src="plots/31_percentile_risk_by_age_cardiovascular.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Biological Age Gap vs Cardiovascular Risk (Percentile-Based)</div>
+                        <iframe src="plots/32_bioage_gap_vs_percentile_cardiovascular.html"></iframe>
+                    </div>
+                </div>
+                
+                <h4 style="color: var(--well-primary); margin: 2rem 0 1rem 0;">Diabetes Risk (Percentile-Based)</h4>
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Diabetes Risk by Age Group (Percentile-Based)</div>
+                        <iframe src="plots/33_percentile_risk_by_age_diabetes.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Biological Age Gap vs Diabetes Risk (Percentile-Based)</div>
+                        <iframe src="plots/34_bioage_gap_vs_percentile_diabetes.html"></iframe>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 4: Biological Age Insights -->
+        <div class="tab-content" id="part4">
+            <div class="section-header">
+                <h2>Part 4: Biological Age Insights</h2>
+                <p>Relationship between biological aging and further review</p>
+            </div>
+            <div class="section-content">
+                <div class="viz-grid">
+                    <div class="viz-card">
+                        <div class="viz-title">Biological Age Gap Distribution</div>
+                        <iframe src="plots/20_bioage_gap_distribution.html"></iframe>
+                    </div>
+                    <div class="viz-card">
+                        <div class="viz-title">Biological vs Chronological Age</div>
+                        <iframe src="plots/21_bioage_vs_chronoage_scatter.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card full">
+                        <div class="viz-title">Biological Age Gap vs Further Review</div>
+                        <iframe src="plots/22_bioage_gap_vs_clinical_attention.html" style="width: 100%;"></iframe>
+                    </div>
+                </div>
+                <div class="data-summary">
+                    <h3>Biological Age Analysis</h3>
+                    <p>
+                        <strong>Key Finding:</strong> 98.2% of patients show slower biological aging than chronological aging, with an average biological age gap of -10.8 years. 
+                        Only 1.8% of patients (2 out of 113 with biological age data) show accelerated aging (positive gap). 
+                        This indicates that most patients in our cohort are biologically younger than their chronological age, suggesting effective health management or favorable genetic factors.
+                        Analysis includes relationships between biological age gaps, further review, and cardiovascular risk levels.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Part 5: Further Review Analysis -->
+        <div class="tab-content" id="part5">
+            <div class="section-header">
+                <h2>Part 5: Further Review Analysis</h2>
+                <p>Patients with multiple values outside standard ranges that may warrant further review</p>
+            </div>
+            <div class="section-content">
+                <div class="viz-grid">
+                    <div class="viz-card half">
+                        <div class="viz-title">Overall Further Review Requirements</div>
+                        <iframe src="plots/28_overall_further_review_warranted.html"></iframe>
+                    </div>
+                    <div class="viz-card half">
+                        <div class="viz-title">Further Review by Age Group</div>
+                        <iframe src="plots/25_clinical_attention_by_age_group.html"></iframe>
+                    </div>
+                </div>
+                <div class="viz-grid">
+                    <div class="viz-card half">
+                        <div class="viz-title">Further Review by Gender</div>
+                        <iframe src="plots/26_clinical_attention_by_gender_name.html"></iframe>
+                    </div>
+                    <div class="viz-card half">
+                        <div class="viz-title">Further Review by Clinic</div>
+                        <iframe src="plots/27_clinical_attention_by_clinic_name.html"></iframe>
+                    </div>
+                </div>
+                <div class="data-summary">
+                    <h3>Further Review Summary</h3>
+                    <p>
+                        Based on screening data analysis, the top 25% of patients have multiple values outside standard ranges and may warrant further review. 
+                        Attention rates vary by demographics: age groups show increasing rates from 54.5% (<30 years) to 100.0% (70+ years), 
+                        males show higher rates (82.9%) than females (54.7%), and clinic rates range from 54.3% to 76.4%.
+                    </p>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2025 WELL Health Risk-Insight Analytics Dashboard | Comprehensive Analysis Report</p>
+        </div>
+    </footer>
+
+    <script>
+        // Tab switching functionality
+        function showTab(tabId) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active', 'show');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(button => {
+                button.classList.remove('active');
+            });
+            
+            // Show selected tab content with animation
+            const selectedTab = document.getElementById(tabId);
+            if (selectedTab) {
+                selectedTab.classList.add('active', 'show');
+            }
+            
+            // Add active class to clicked button
+            event.target.classList.add('active');
+            
+            // Smooth scroll to top of content area
+            selectedTab.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
+            });
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add fade-in animation to visible elements
+            const observerOptions = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptions);
+
+            // Observe tab contents for smooth animations
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observer.observe(content);
+            });
+
+            // Animate KPI cards on scroll
+            const observerOptionsKpi = {
+                threshold: 0.1,
+                rootMargin: '0px 0px -50px 0px'
+            };
+
+            const observerKpi = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
+            }, observerOptionsKpi);
+
+            // Observe KPI cards
+            document.querySelectorAll('.kpi-card').forEach(card => {
+                card.style.opacity = '0';
+                card.style.transform = 'translateY(20px)';
+                card.style.transition = 'opacity 0.6s ease, transform 0.6s ease';
+                observerKpi.observe(card);
+            });
+
+            // Add loading animation for iframes
+            document.querySelectorAll('iframe').forEach(iframe => {
+                iframe.addEventListener('load', function() {
+                    this.style.opacity = '1';
+                });
+                iframe.style.opacity = '0';
+                iframe.style.transition = 'opacity 0.3s ease';
+            });
+        });
+    </script>
+</body>
+</html>
