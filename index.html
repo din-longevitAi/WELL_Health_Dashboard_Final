@@ -4,15 +4,82 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WELL Health Risk-Insight Analytics Dashboard</title>
+    <style>
+        /* Style for the password protection overlay */
+        #passwordOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(11, 61, 95, 0.95);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            flex-direction: column;
+            color: white;
+            font-family: Arial, sans-serif;
+        }
+        #passwordForm {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+            color: #333;
+        }
+        #passwordForm input[type="password"] {
+            padding: 10px;
+            margin: 10px 0;
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+        #passwordForm button {
+            background-color: #0B3D5F;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        #passwordForm button:hover {
+            background-color: #0a3450;
+        }
+        .error-message {
+            color: #e74c3c;
+            margin-top: 10px;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Password Protection Overlay -->
+    <div id="passwordOverlay">
+        <form id="passwordForm" onsubmit="return checkPassword(event)">
+            <h2>WELL Health Dashboard</h2>
+            <p>Please enter the password to continue</p>
+            <input type="password" id="passwordInput" placeholder="Enter password" required>
+            <div>
+                <button type="submit">Submit</button>
+                <button type="button" onclick="showAccessDenied()">Cancel</button>
+            </div>
+            <div id="errorMessage" class="error-message">Incorrect password. Please try again.</div>
+        </form>
+    </div>
+
     <script>
         // Password protection
-        function checkPassword() {
-            // Simple obfuscation - this is not secure, just makes it slightly less obvious
+        function checkPassword(event) {
+            event.preventDefault();
             const passPhrase = 'well' + '2025' + 'health';
-            const inputPass = prompt('Please enter the password to access the dashboard:');
+            const inputPass = document.getElementById('passwordInput').value;
             
             // Simple hash function to make the password less obvious in the source
             function simpleHash(str) {
+                if (!str) return -1;
                 let hash = 0;
                 for (let i = 0; i < str.length; i++) {
                     const char = str.charCodeAt(i);
@@ -22,22 +89,42 @@
                 return hash;
             }
             
-            // Check if the hashed input matches the hashed password
-            if (simpleHash(inputPass) !== simpleHash(passPhrase)) {
-                alert('Incorrect password. Please refresh the page to try again.');
-                document.body.innerHTML = `
-                    <div style="font-family: Arial, sans-serif; text-align: center; margin-top: 100px;">
-                        <h1 style="color: #0B3D5F;">Access Denied</h1>
-                        <p>You do not have permission to view this dashboard.</p>
-                        <p>Please contact the administrator for access.</p>
-                    </div>
-                `;
-                document.body.style.backgroundColor = '#f8f9fa';
+            if (simpleHash(inputPass) === simpleHash(passPhrase)) {
+                document.getElementById('passwordOverlay').style.display = 'none';
+                return true;
+            } else {
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('passwordInput').value = '';
+                document.getElementById('passwordInput').focus();
+                return false;
             }
         }
         
-        // Run password check when page loads
-        window.onload = checkPassword;
+        function showAccessDenied() {
+            document.getElementById('passwordOverlay').innerHTML = `
+                <div style="text-align: center; color: white;">
+                    <h2>Access Denied</h2>
+                    <p>You must enter the correct password to access this dashboard.</p>
+                    <p>Please refresh the page to try again.</p>
+                </div>
+            `;
+        }
+        
+        // Prevent right-click and F12 (DevTools)
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        });
+        
+        document.addEventListener('keydown', function(e) {
+            // Disable F12, Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+U
+            if (e.key === 'F12' || 
+                (e.ctrlKey && e.shiftKey && (e.key === 'I' || e.key === 'J' || e.key === 'C')) ||
+                (e.ctrlKey && e.key === 'u')) {
+                e.preventDefault();
+                return false;
+            }
+        });
     </script>
     <style>
         /* WELL Health Brand Palette */
