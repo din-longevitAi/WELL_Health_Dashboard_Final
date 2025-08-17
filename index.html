@@ -4,6 +4,41 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WELL Health Risk-Insight Analytics Dashboard</title>
+    <script>
+        // Password protection
+        function checkPassword() {
+            // Simple obfuscation - this is not secure, just makes it slightly less obvious
+            const passPhrase = 'well' + '2025' + 'health';
+            const inputPass = prompt('Please enter the password to access the dashboard:');
+            
+            // Simple hash function to make the password less obvious in the source
+            function simpleHash(str) {
+                let hash = 0;
+                for (let i = 0; i < str.length; i++) {
+                    const char = str.charCodeAt(i);
+                    hash = ((hash << 5) - hash) + char;
+                    hash = hash & hash; // Convert to 32bit integer
+                }
+                return hash;
+            }
+            
+            // Check if the hashed input matches the hashed password
+            if (simpleHash(inputPass) !== simpleHash(passPhrase)) {
+                alert('Incorrect password. Please refresh the page to try again.');
+                document.body.innerHTML = `
+                    <div style="font-family: Arial, sans-serif; text-align: center; margin-top: 100px;">
+                        <h1 style="color: #0B3D5F;">Access Denied</h1>
+                        <p>You do not have permission to view this dashboard.</p>
+                        <p>Please contact the administrator for access.</p>
+                    </div>
+                `;
+                document.body.style.backgroundColor = '#f8f9fa';
+            }
+        }
+        
+        // Run password check when page loads
+        window.onload = checkPassword;
+    </script>
     <style>
         /* WELL Health Brand Palette */
         :root {
