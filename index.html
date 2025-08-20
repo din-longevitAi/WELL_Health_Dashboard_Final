@@ -127,6 +127,10 @@
         });
     </script>
     <style>
+        /* מונע חיתוך בכרום לכל גרפי Plotly */
+        .js-plotly-plot .plotly .main-svg { overflow: visible !important; }
+      </style>
+    <style>
         /* WELL Health Brand Palette */
         :root {
             --well-primary: #0B3D5F;
@@ -292,7 +296,6 @@
             height: 500px;
             border: none;
             margin-top: 1rem;
-            overflow: hidden !important;
             transform-origin: 0 0;
             transform: scale(1);
             max-width: 100%;
@@ -920,6 +923,41 @@
             document.querySelectorAll('iframe').forEach(iframe => {
                 iframe.addEventListener('load', function() {
                     this.style.opacity = '1';
+                    try {
+                        // Inject CSS into iframe to prevent clipping in Chrome
+                        const doc = this.contentDocument || this.contentWindow?.document;
+                        if (!doc) return;
+                        const head = doc.head || doc.getElementsByTagName('head')[0];
+                        if (head && !doc.getElementById('plotly-overflow-fix')) {
+                            const style = doc.createElement('style');
+                            style.id = 'plotly-overflow-fix';
+                            style.textContent = '.js-plotly-plot .plotly .main-svg { overflow: visible !important; } html, body { background: transparent; overflow: visible; }';
+                            head.appendChild(style);
+                        }
+
+                        // Apply per-plot margin/legend tweaks where needed
+                        const src = (this.getAttribute('src') || '').split('/').pop();
+                        const gd = doc.querySelector('.js-plotly-plot');
+                        const PlotlyRef = this.contentWindow && this.contentWindow.Plotly;
+                        const tryRelayout = (opts) => {
+                            if (!gd || !PlotlyRef || !PlotlyRef.relayout) return;
+                            try { PlotlyRef.relayout(gd, opts); } catch (e) { /* no-op */ }
+                        };
+
+                        if (src === '05_top_biomarkers_values_outside_standard_range.html') {
+                            tryRelayout({
+                                margin: { l: 100, r: 100, t: 110, b: 60 },
+                                title: { x: 0.5, xanchor: 'center' }
+                            });
+                        } else if (src === '07_cholesterol_by_demographics.html') {
+                            tryRelayout({
+                                margin: { l: 60, r: 120, t: 90, b: 60 },
+                                legend: { x: 1, xanchor: 'right', y: 1, yanchor: 'top' }
+                            });
+                        }
+                    } catch (e) {
+                        // Silently ignore cross-origin or timing issues
+                    }
                 });
                 iframe.style.opacity = '0';
                 iframe.style.transition = 'opacity 0.3s ease';
